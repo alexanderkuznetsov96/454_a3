@@ -1,0 +1,48 @@
+CISC/CMPE 454 Assignment 3
+Due Wednesday, April 11 before 6:00pm
+
+You may work in groups of two.  Graduate students must work individually.
+
+You are to implement pixel antialiasing (with and without jittering),
+glossy reflection, and soft shadows in a raytracer.
+
+In the supplied code, replace "YOUR CODE HERE" with your own code.
+You only have to modify scene.cpp.
+
+Build a scene that shows all three effects at once.
+
+You should first spend at least three hours looking at the code and
+understanding it.  If you do not do this, the assignment will take
+much longer.
+
+This code only works on Linux.  (When ported to Windows, it does not
+correctly draw spheres and debugging arrows, so you should not spend
+the time trying to get it running on Windows.)
+
+Run the code with the name of a world on the command line, like
+
+   ./rt worlds/testBasic
+
+Once it runs, press '?' to see in the terminal window a list of actions.
+
+To Hand In
+
+  Make a directory called 'a3'.  In that directory, put ONLY THREE FILES:
+
+    - scene.cpp
+
+    - a README file with your name(s), student number(s) again, and
+      email address(es)
+
+    - one screen captured image of your program output, showing
+      antialiasing, shadows, and glossy reflection.
+
+  Create a ZIP archive of the a3 directory.
+
+  Email the archive to jstewart@cs.queensu.ca
+
+We will take your scene.cpp file and will compile it on the CasLab
+Linux machines with the rest of the code provided for the assignment.
+Marks will be deducted if your scene.cpp code not compile and run on
+the CasLab Linux machines.
+  
