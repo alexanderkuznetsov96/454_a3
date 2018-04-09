@@ -171,12 +171,31 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
     // cone's halfangle psi = acos(g)
 
     // YOUR CODE HERE
+    
+    vec3 TotalGlossyIout = vec3(0.0,0.0,0.0);
 
+    float psi = acos(g);
+    vec3 u = R.perp1();
+    vec3 v = R.perp2();
+    float l = 1.0/tan(psi);
+    //std::cout << "R: " << R.x << " " << R.y << " " << R.z << std::endl;
+    //std::cout << "u: " << u.x << " " << u.y << " " << u.z << std::endl;
+    //std::cout << "v: " << v.x << " " << v.y << " " << v.z << std::endl;
+    
+    for(int i = 0; i < glossyIterations; i++){
 
+        float a = static_cast <float>( rand() ) / RAND_MAX;
+        float b = static_cast <float>( rand() ) / RAND_MAX;
+	//std::cout << "a: " << a << " b: " << b << std::endl;
+	vec3 Rprime = (l*R + a*u + b*v).normalize();
 
-
-
-
+    	vec3 Iin = raytrace( P, Rprime, depth, objIndex, objPartIndex );
+	
+	// We pass kd = (0,0,0) because glossy reflection contributes only to the specular component of illumation
+        TotalGlossyIout = TotalGlossyIout + calcIout( N, Rprime, E, E, vec3(0.0, 0.0, 0.0) , mat->ks, mat->n, Iin );
+    }
+    
+    Iout = Iout + (1.0f / glossyIterations) * TotalGlossyIout; // We add the average Iout from glossy reflection
 
   }
 
