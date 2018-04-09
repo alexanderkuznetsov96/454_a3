@@ -148,6 +148,8 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
   vec3 kd = vec3( colour.x*mat->kd.x, colour.y*mat->kd.y, colour.z*mat->kd.z );
 
   vec3 Iout = mat->Ie + vec3( mat->ka.x * Ia.x, mat->ka.y * Ia.y, mat->ka.z * Ia.z );
+l
+  std::cout << "Iout before: " << Iout << std::endl;
 
   // Compute glossy reflection
 
@@ -203,6 +205,8 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
 
   }
 
+  //std::cout << "Iout before: " << Iout << std::endl;
+
   // Add direct contributions from lights
 
   for (int i=0; i<lights.size(); i++) {
@@ -231,7 +235,8 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
   }
 
   // Add contributions from emitting triangles
-
+  //std::cout << "NUM_SOFT_SHADOW_RAYS: " << NUM_SOFT_SHADOW_RAYS << std::endl;
+  //std::cout << "Iout before: " << Iout << std::endl;
   for (int i=0; i<objects.size(); i++)
     if (i != thisObjIndex && objects[i]->mat->Ie.squaredLength() > 0) {
 
@@ -242,12 +247,54 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
       // shadow rays
 
       // YOUR CODE HERE
+        //vec3 TotalShadowRayIout = vec3(0.0, 0.0, 0.0);
 
+        // Generate random vectors towards light
+        //int contributions = 0;
+	//std::cout << "Iout before: " << Iout << std::endl;
+        for(int i = 0; i < NUM_SOFT_SHADOW_RAYS; i++){
 
+          // Generate vector
+          float a;
+          float b;
+	  do {
+	    a = static_cast <float>( rand() ) / RAND_MAX;
+  	    b = static_cast <float>( rand() ) / RAND_MAX;
+	  } while(a < 0 | b < 0 | (a + b > 1.0) );
+          float c = 1 - a - b;
+          // Compute this point on the triangle 
+          vec3 PointOnTriangle = triangle->pointFromBarycentricCoords(a, b, c);
+          vec3 Lprime = PointOnTriangle - P;
+          // std::cout << "L_prime: " << Lprime << std::endl;
+	  float  Ldist = Lprime.length();
+	  Lprime = Lprime.normalize();
 
+          // Check if blocked
+      	  vec3 intP, intN;
+      	  float intT;
+      	  int intObjIndex, intObjPartIndex;
+      	  Material *intMat;
 
+          bool found = findFirstObjectInt( P, Lprime, objIndex, objPartIndex, intP, intN, intT, intObjIndex, intObjPartIndex, intMat );
+	  //std::cout << "Checking" << std::endl;
+	  //std::cout << "intT: " << intT << " Ldist: " << Ldist << std::endl;
 
+	  if (!found || intT + 0.0001 > Ldist) { // no object: Add contribution from this light
+ 	    // Add contribution from light intensity
+            // TotalShadowRayIout = TotalShadowRayIout + triangle->textureColour(PointOnTriangle, thisObjIndex, a);
+            //std::cout << "No intersection" << std::endl;
+            //contributions++;
+	    Iout = Iout + (1.0 / NUM_SOFT_SHADOW_RAYS) * vec3(0.1,0.1,0.1);
+	  }
 
+        }
+        //std::cout << "Contributions: " << contributions << std::endl;
+        // Each shadow ray contributes 1/k of the intensity, where we sample k rays.
+	//std::cout << "TotalShadowRayIout: " << TotalShadowRayIout << std::endl;
+        //Iout = Iout + TotalShadowRayIout;
+
+	//std::cout << "Iout: " << Iout << std::endl;
+    
     }
 
   return Iout;
