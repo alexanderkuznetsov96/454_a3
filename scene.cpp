@@ -183,9 +183,13 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
     //std::cout << "v: " << v.x << " " << v.y << " " << v.z << std::endl;
     
     for(int i = 0; i < glossyIterations; i++){
-
-        float a = static_cast <float>( rand() ) / RAND_MAX;
-        float b = static_cast <float>( rand() ) / RAND_MAX;
+	// Generate random vectors within the cone defined by direction 'R' with glossiness 'g'
+        float a;
+        float b;
+	do {
+	  a = static_cast <float>( rand() ) / RAND_MAX;
+  	  b = static_cast <float>( rand() ) / RAND_MAX;
+	} while(a*a + b*b > 1.0);
 	//std::cout << "a: " << a << " b: " << b << std::endl;
 	vec3 Rprime = (l*R + a*u + b*v).normalize();
 
