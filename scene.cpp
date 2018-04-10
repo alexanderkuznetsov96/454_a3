@@ -342,6 +342,8 @@ vec3 Scene::pixelColour( int x, int y )
   if(jitter) { 
       c = static_cast <float>( rand() ) / RAND_MAX;
       d = static_cast <float>( rand() ) / RAND_MAX;
+      c -= 0.5;
+      d -= 0.5;
   }
   else {
     c = 0;
@@ -354,7 +356,6 @@ vec3 Scene::pixelColour( int x, int y )
     dir = dir +  a / numPixelSamples * right +  b / numPixelSamples * up;
     // Jitter around center of each subdivision again using basis vectors <up/N> and <right/N>
     dir = dir + c / numPixelSamples * right + d / numPixelSamples * up;
-    dir = dir.normalize();
     //std::cout << "New dir: " << dir << std::endl << std::endl;
     sum = sum + raytrace( eye->position, dir, 0, -1, -1 );
   }
