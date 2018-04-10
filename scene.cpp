@@ -249,12 +249,11 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
         for(int i = 0; i < NUM_SOFT_SHADOW_RAYS; i++){
 
           // Generate vector
-          float a;
-          float b;
+          float a, b;
 	  do {
 	    a = static_cast <float>( rand() ) / RAND_MAX;
   	    b = static_cast <float>( rand() ) / RAND_MAX;
-	  } while(a < 0 | b < 0 | (a + b > 1.0) );
+	  } while(a + b > 1.0);
           float c = 1 - a - b;
           // Compute this point on the triangle 
           vec3 PointOnTriangle = triangle->pointFromBarycentricCoords(a, b, c);
@@ -271,7 +270,6 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
           bool found = findFirstObjectInt( P, Lprime, objIndex, objPartIndex, intP, intN, intT, intObjIndex, intObjPartIndex, intMat );
 	  if (found && abs(intT - Ldist) < 0.0001) { // no object between light and point
  	    // Add contribution from light intensity
-	    // std::cout << "intMat->Ie: " << intMat->Ie << std::endl;
 	    TotalShadowIout = TotalShadowIout + intMat->Ie; 
 	  }
 
@@ -326,6 +324,7 @@ vec3 Scene::pixelColour( int x, int y )
 
   int count = 0;
   vec3 sum(0,0,0);
+  int k = numPixelSamples * numPixelSamples;
 
   // Send numPixelSamples x numPixelSamples rays through the pixel.
   // If 'jitter' is true, jitter them in their own regions.  If
@@ -334,22 +333,45 @@ vec3 Scene::pixelColour( int x, int y )
 
   // YOUR CODE HERE
 
+  float c, d;
+  if(jitter) { 
+    do {
+      c = static_cast <float>( rand() ) / RAND_MAX;
+      d = static_cast <float>( rand() ) / RAND_MAX;
+    }   while(c + d > 1.0);
+    c -= 1;
+    d -= 1;
+  }
+  else {
+    c = 0;
+    d = 0;
+  }
 
+  // Find ray to center of pixel
+  vec3 dir = (llCorner + x * right + y * up).normalize();
+  //std::cout << "Old dir: " << dir << std::endl;
+  
+  for(;count < k; count++) {
+    // Using basis vectors <up/N> and <right/N>, find ray to center of each subdivision
+    float a = (count % numPixelSamples - static_cast <float>( (numPixelSamples - 1) )/2);
+    float b = (count / numPixelSamples - static_cast <float>( (numPixelSamples - 1) )/2);
+    //std::cout << "a: " << a << " b: " << b << std::endl;
+    dir = dir +  a / numPixelSamples * right +  b / numPixelSamples * up;
+    // Jitter around center of each subdivision again using basis vectors <up/N> and <right/N>
+    dir = dir + c / numPixelSamples * right + d / numPixelSamples * up;
+    dir = dir.normalize();
+    //std::cout << "New dir: " << dir << std::endl << std::endl;
+    sum = sum + raytrace( eye->position, dir, 0, -1, -1 );
+  }
 
-
+  result = (1.0 / k) * sum;
 
   // Here's some code that chooses a direction through the pixel and
   // traces one ray in that direction, without antialiasing.  Replace
   // this code with your own.
-
-  vec3 dir = (llCorner + x * right + y * up).normalize();
-  result = raytrace( eye->position, dir, 0, -1, -1 );
-
-
-
-
-
-  
+  //vec3 dir = (llCorner + x * right +  y * up).normalize();
+  //result = raytrace( eye->position, dir, 0, -1, -1 );
+ 
   if (storingRays)
     storingRays = false;
 
