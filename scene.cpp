@@ -333,25 +333,20 @@ vec3 Scene::pixelColour( int x, int y )
 
   // YOUR CODE HERE
 
-  float c, d;
-  if(jitter) { 
-    do {
-      c = static_cast <float>( rand() ) / RAND_MAX;
-      d = static_cast <float>( rand() ) / RAND_MAX;
-    }   while(c + d > 1.0);
-    c -= 1;
-    d -= 1;
-  }
-  else {
-    c = 0;
-    d = 0;
-  }
-
   // Find ray to center of pixel
   vec3 dir = (llCorner + x * right + y * up).normalize();
   //std::cout << "Old dir: " << dir << std::endl;
   
   for(;count < k; count++) {
+  float c, d;
+  if(jitter) { 
+      c = static_cast <float>( rand() ) / RAND_MAX;
+      d = static_cast <float>( rand() ) / RAND_MAX;
+  }
+  else {
+    c = 0;
+    d = 0;
+  }
     // Using basis vectors <up/N> and <right/N>, find ray to center of each subdivision
     float a = (count % numPixelSamples - static_cast <float>( (numPixelSamples - 1) )/2);
     float b = (count / numPixelSamples - static_cast <float>( (numPixelSamples - 1) )/2);
