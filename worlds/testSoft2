@@ -1,0 +1,141 @@
+# Test of soft shadows
+
+eye        
+  4.41509 -8.50722 3.06956
+  0.176441 0.205498 0.594979
+  -0.116647 0.218428 0.968863
+  0.438861
+
+material
+  glass       # name
+  0 0 0       # ambient reflectivity (Ka)
+  1 1 1       # diffuse reflectivity (Kd)
+  0 0 0       # specular reflectivity (Ks)
+  1           # shininess (n)
+  1           # glossiness (g)
+  0 0 0       # emission (Ie)
+  1           # opacity (alpha)
+  data/musicGlass.ppm  # texture filename (- means none)
+  -           # bump map filename (- means none)
+
+material
+  white       # name
+  0 0 0       # ambient reflectivity (Ka)
+  1 1 1       # diffuse reflectivity (Kd)
+  0 0 0       # specular reflectivity (Ks)
+  10          # shininess (n)
+  1           # glossiness (g)
+  0 0 0       # emission (Ie)
+  1           # opacity (alpha)
+  -           # texture filename (- means none)
+  -           # bump map filename (- means none)
+
+material
+  glossyfloor       # name
+  0 0 0       # ambient reflectivity (Ka)
+  0.4 0.4 0.4 # diffuse reflectivity (Kd)
+  .1 .1 .1    # specular reflectivity (Ks)
+  100         # shininess (n)
+  .999        # glossiness (g)
+  0 0 0       # emission (Ie)
+  0.8           # opacity (alpha)
+  -           # texture filename (- means none)
+  -           # bump map filename (- means none)
+
+material
+  red         # name
+  .09 .02 .03 # ambient reflectivity (Ka)
+  .9 .2 .3    # diffuse reflectivity (Kd)
+  0 0 0       # specular reflectivity (Ks)
+  10          # shininess (n)
+  1           # glossiness (g)
+  0 0 0       # emission (Ie)
+  1           # opacity (alpha)
+  -           # texture filename
+  -           # bump map filename (- means none)
+
+material
+  light       # name
+  0 0 0       # ambient reflectivity (Ka)
+  0 0 0       # diffuse reflectivity (Kd)
+  0 0 0       # specular reflectivity (Ks)
+  10          # shininess (n)
+  1           # glossiness (g)
+  .5 .5 .5    # emission (Ie)
+  1           # opacity (alpha)
+  -           # texture filename
+  -           # bump map filename (- means none)
+
+# floor
+
+triangle
+  -2.0 -2.0 0.0
+   2.0 -2.0 0.0
+   2.0  2.0 0.0
+  glossyfloor
+
+triangle
+   2.0  2.0 0.0
+  -2.0  2.0 0.0
+  -2.0 -2.0 0.0
+  glossyfloor
+
+triangle
+  2 1 0 / 0 0
+  2 -1 0 / 1 0
+  2 1 1 / 0 1
+  glass
+
+triangle
+  2 -1 0 / 1 0
+  2 -1 1 / 1 1
+  2 1 1 / 0 1
+  glass
+
+########## 
+
+triangle
+  -1 2 0 / 0 0
+  1 2 0 / 1 0
+  -1 2 1 / 0 1
+  glass
+
+triangle
+  1 2 0 / 1 0
+  1 2 1 / 1 1
+  -1 2 1 / 0 1
+  glass
+
+# blocker (back-to-back triangles)
+
+triangle
+  -.940 -.342 1.0
+  0.174 0.985 1.0
+  0.766 -.643 1.0
+  red
+
+triangle
+  0.174 0.985 1.01
+  -.940 -.342 1.01
+  0.766 -.643 1.01
+  red
+
+sphere 
+  .5           # radius
+  -1.5 -.5 .5       # centre
+  red         # material name
+
+
+# light
+
+triangle
+   0.5 -0.5 2.5
+  -0.5 -0.5 2.5
+   0.5  0.5 2.5
+  light
+
+triangle
+  -0.5  0.5 2.5
+   0.5  0.5 2.5
+  -0.5 -0.5 2.5
+  light

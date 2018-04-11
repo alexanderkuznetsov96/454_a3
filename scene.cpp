@@ -178,19 +178,16 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
     vec3 u = R.perp1();
     vec3 v = R.perp2();
     float l = 1.0/tan(psi);
-    //std::cout << "R: " << R.x << " " << R.y << " " << R.z << std::endl;
-    //std::cout << "u: " << u.x << " " << u.y << " " << u.z << std::endl;
-    //std::cout << "v: " << v.x << " " << v.y << " " << v.z << std::endl;
     
     for(int i = 0; i < glossyIterations; i++){
 	// Generate random vectors within the cone defined by direction 'R' with glossiness 'g'
         float a;
         float b;
 	do {
-	  a = static_cast <float>( rand() ) / RAND_MAX;
-  	  b = static_cast <float>( rand() ) / RAND_MAX;
+	  a = 2 * static_cast <float>( rand() ) / RAND_MAX - 1;
+  	  b = 2 * static_cast <float>( rand() ) / RAND_MAX - 1;
 	} while(a*a + b*b > 1.0);
-	//std::cout << "a: " << a << " b: " << b << std::endl;
+
 	vec3 Rprime = (l*R + a*u + b*v).normalize();
 
     	vec3 Iin = raytrace( P, Rprime, depth, objIndex, objPartIndex );
@@ -208,7 +205,6 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
 
   for (int i=0; i<lights.size(); i++) {
     Light &light = *lights[i];
-
     vec3 L = light.position - P;
 
     if (N*L > 0) {
@@ -243,21 +239,24 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
       // shadow rays
 
       // YOUR CODE HERE
-        vec3 TotalShadowIout = vec3(0.0, 0.0, 0.0);
 
-        // Generate random vectors towards light
-        for(int i = 0; i < NUM_SOFT_SHADOW_RAYS; i++){
+      // Generate random vectors towards light
+      for(int i = 0; i < NUM_SOFT_SHADOW_RAYS; i++){
 
-          // Generate vector
-          float a, b;
-	  do {
-	    a = static_cast <float>( rand() ) / RAND_MAX;
-  	    b = static_cast <float>( rand() ) / RAND_MAX;
-	  } while(a + b > 1.0);
-          float c = 1 - a - b;
-          // Compute this point on the triangle 
-          vec3 PointOnTriangle = triangle->pointFromBarycentricCoords(a, b, c);
-          vec3 Lprime = PointOnTriangle - P;
+        // Generate vector
+        float a, b;
+	do {
+	  a = static_cast <float>( rand() ) / RAND_MAX;
+  	  b = static_cast <float>( rand() ) / RAND_MAX;
+	} while(a + b > 1.0);
+
+        float c = 1 - a - b;
+
+        // Compute this point on the triangle 
+        vec3 PointOnTriangle = triangle->pointFromBarycentricCoords(a, b, c);
+        vec3 Lprime = PointOnTriangle - P;
+        if (N*Lprime > 0) {
+
 	  float  Ldist = Lprime.length();
 	  Lprime = Lprime.normalize();
 
@@ -269,13 +268,17 @@ vec3 Scene::raytrace( vec3 &rayStart, vec3 &rayDir, int depth, int thisObjIndex,
 
           bool found = findFirstObjectInt( P, Lprime, objIndex, objPartIndex, intP, intN, intT, intObjIndex, intObjPartIndex, intMat );
 	  if (found && abs(intT - Ldist) < 0.0001) { // no object between light and point
+
  	    // Add contribution from light intensity
-	    TotalShadowIout = TotalShadowIout + intMat->Ie; 
+            vec3 Lr = (2 * (Lprime * N)) * N - Lprime;
+	    Iout = Iout + (1.0 / NUM_SOFT_SHADOW_RAYS) * calcIout( N, Lprime, E, Lr, kd, mat->ks, mat->n, intMat->Ie);
+
 	  }
 
         }
-        // Each shadow ray contributes 1/k of the intensity, where we sample k rays.   
-	Iout = Iout + (1.0 / NUM_SOFT_SHADOW_RAYS) * TotalShadowIout;
+
+      }  
+
     }
 
   return Iout;
@@ -335,38 +338,32 @@ vec3 Scene::pixelColour( int x, int y )
 
   // Find ray to center of pixel
   vec3 dir = (llCorner + x * right + y * up).normalize();
-  //std::cout << "Old dir: " << dir << std::endl;
   
   for(;count < k; count++) {
-  float c, d;
-  if(jitter) { 
+    float c, d;
+    if(jitter) { 
       c = static_cast <float>( rand() ) / RAND_MAX;
       d = static_cast <float>( rand() ) / RAND_MAX;
       c -= 0.5;
       d -= 0.5;
-  }
-  else {
-    c = 0;
-    d = 0;
-  }
+    }
+    else {
+      c = 0;
+      d = 0;
+    }
     // Using basis vectors <up/N> and <right/N>, find ray to center of each subdivision
     float a = (count % numPixelSamples - static_cast <float>( (numPixelSamples - 1) )/2);
     float b = (count / numPixelSamples - static_cast <float>( (numPixelSamples - 1) )/2);
-    //std::cout << "a: " << a << " b: " << b << std::endl;
     dir = dir +  a / numPixelSamples * right +  b / numPixelSamples * up;
+
     // Jitter around center of each subdivision again using basis vectors <up/N> and <right/N>
     dir = dir + c / numPixelSamples * right + d / numPixelSamples * up;
-    //std::cout << "New dir: " << dir << std::endl << std::endl;
+
     sum = sum + raytrace( eye->position, dir, 0, -1, -1 );
   }
 
+  // Result is the average
   result = (1.0 / k) * sum;
-
-  // Here's some code that chooses a direction through the pixel and
-  // traces one ray in that direction, without antialiasing.  Replace
-  // this code with your own.
-  //vec3 dir = (llCorner + x * right +  y * up).normalize();
-  //result = raytrace( eye->position, dir, 0, -1, -1 );
  
   if (storingRays)
     storingRays = false;
